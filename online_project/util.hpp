@@ -77,6 +77,7 @@ public:
     content->clear();         //将原来字符串中的内容清零
     std::ifstream file(file_path.c_str());
     if(!file.is_open()){
+      std::cout << "file is not open" << std::endl;
       return false;
     }
     std::string line;
@@ -91,6 +92,9 @@ public:
     //因此说可配置
     
     file.close();
+    
+    std::cout << content << std::endl;
+
     return true;
   }
 
