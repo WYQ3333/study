@@ -70,13 +70,8 @@ class Compiler{
         //错误处理
         (*resp)["error"] = 1;
         std::string reason = "";
-        FileUtil::Read(file_name, &reason);
-        //FileUtil::Read(CompileErrorPath(file_name), &reason);
-        
-        std::cout << "出错原因为：" << std::endl;
-        std::cout << reason << std::endl;
-
-        (*resp)["reason"] = reason; 
+        FileUtil::Read(CompileErrorPath(file_name), &reason);
+        (*resp)["reason"] = reason;
         //虽然是编译出错，但这样的错误是用户自己的错误，不是服务器的错误
         LOG(INFO) << "Compile failde!(please check yours code!!!) " << std::endl;
         return false;
@@ -115,11 +110,10 @@ private:
       ++id;
       std::string file_name = "tmp_" + std::to_string(TimeUtil::TimeStamp()) + "." + std::to_string(id);
       FileUtil::Write(SrcPath(file_name), code);
-      //FileUtil::Write(file_name, code);
-
       FileUtil::Write(StdinPath(file_name), str_stdin);
       return file_name;
     }
+
     static bool Compile(const std::string& file_name){
       //1.先构造出编译指令：g++ file_name.cpp -o file_name.exe -std=c++11
       //必须要保证command的指针指向有效内存
@@ -144,7 +138,7 @@ private:
         waitpid(ret, NULL, 0);
       }
       else{
-        int fd = open(ExePath(file_name).c_str(), O_WRONLY|O_CREAT, 0666); //权限是八进制的，所以要用0表示八进制
+        int fd = open(CompileErrorPath(file_name).c_str(), O_WRONLY|O_CREAT, 0666); //权限是八进制的，所以要用0表示八进制
         if(fd < 0){
           LOG(ERROR) << "open Compiler file error" << std::endl;
           exit(1);
@@ -181,10 +175,8 @@ private:
         dup2(fd_stdout,1);
         int fd_stderr =open(StderrPath(file_name).c_str(), O_WRONLY|O_CREAT, 0666);
         dup2(fd_stderr,2);
-
         execl(ExePath(file_name).c_str(), ExePath(file_name).c_str(), NULL);
         exit(0);
       }
-      
     }
 };
